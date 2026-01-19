@@ -57,20 +57,34 @@
     <p>Already have an account? <a href="login.html">Login</a></p>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
   <script>
-    document.getElementById("signupForm").addEventListener("submit", function (e) {
+    document.getElementById("signupForm").addEventListener("submit", async function (e) {
       e.preventDefault();
 
-      const user = {
-        name: document.getElementById("name").value,
-        email: document.getElementById("email").value,
-        phone: document.getElementById("phone").value,
-        password: document.getElementById("password").value
-      };
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const phone = document.getElementById("phone").value;
+      const password = document.getElementById("password").value;
 
-      localStorage.setItem("user", JSON.stringify(user));
-      alert("Signup successful!");
-      window.location.href = "login.html";
+      try {
+        const response = await axios.post(
+          "http://localhost:3000/auth/signup",
+          {
+            name,
+            email,
+            phone,
+            password
+          }
+        );
+
+        alert(response.data.message);
+        window.location.href = "login.html";
+
+      } catch (error) {
+        alert(error.response?.data?.message || "Signup failed");
+      }
     });
   </script>
 

@@ -55,22 +55,30 @@
     <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
   <script>
-    document.getElementById("loginForm").addEventListener("submit", function (e) {
+    document.getElementById("loginForm").addEventListener("submit", async function (e) {
       e.preventDefault();
 
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      const id = document.getElementById("loginId").value;
-      const pwd = document.getElementById("loginPassword").value;
+      const loginId = document.getElementById("loginId").value;
+      const password = document.getElementById("loginPassword").value;
 
-      if (
-        storedUser &&
-        (id === storedUser.email || id === storedUser.phone) &&
-        pwd === storedUser.password
-      ) {
-        alert("Login successful!");
-      } else {
-        alert("Invalid credentials");
+      try {
+        const response = await axios.post(
+          "http://localhost:3000/auth/login",
+          {
+            loginId,
+            password
+          }
+        );
+
+        alert(response.data.message);
+
+        localStorage.setItem("token", response.data.token);
+
+      } catch (error) {
+        alert(error.response?.data?.message || "Login failed");
       }
     });
   </script>
