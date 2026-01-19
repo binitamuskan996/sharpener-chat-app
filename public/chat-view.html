@@ -132,14 +132,15 @@ async function loadMessages() {
   chatBox.innerHTML = "";
 
   data.forEach(msg => {
-    const div = document.createElement("div");
-    div.className = msg.userId === USER_ID ? "message sent" : "message received";
-    div.innerHTML = `
-      <p><strong>${msg.User.username}:</strong> ${msg.message}</p>
-      <span class="time">${new Date(msg.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-    `;
-    chatBox.appendChild(div);
-  });
+  const div = document.createElement("div");
+  div.className = msg.userId === USER_ID ? "message sent" : "message received";
+  div.innerHTML = `
+    <p><strong>${msg.username}:</strong> ${msg.message}</p>
+    <span class="time">${new Date(msg.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+  `;
+  chatBox.appendChild(div);
+});
+
 
   chatBox.scrollTop = chatBox.scrollHeight;
 }
