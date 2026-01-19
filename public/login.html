@@ -57,32 +57,31 @@
 
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-  <script>
-    document.getElementById("loginForm").addEventListener("submit", async function (e) {
-      e.preventDefault();
+<script>
+document.getElementById("loginForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
 
-      const loginId = document.getElementById("loginId").value;
-      const password = document.getElementById("loginPassword").value;
+  const loginId = document.getElementById("loginId").value.trim();
+  const password = document.getElementById("loginPassword").value.trim();
 
-      try {
-        const response = await axios.post(
-          "http://localhost:3000/auth/login",
-          {
-            loginId,
-            password
-          }
-        );
-
-        alert(response.data.message);
-
-     localStorage.setItem("token", response.data.token);
-      window.location.href = "chat-view.html";
-
-      } catch (error) {
-        alert(error.response?.data?.message || "Login failed");
-      }
+  try {
+    const res = await axios.post("http://localhost:3000/auth/login", {
+      loginId,
+      password
     });
-  </script>
+
+    localStorage.setItem("token", res.data.token);
+    localStorage.setItem("userId", res.data.userId);
+
+    alert("Login successful");
+    window.location.href = "chat-view.html";
+
+  } catch (err) {
+    alert(err.response?.data?.message || "Login failed");
+  }
+});
+</script>
+
 
 </body>
 </html>

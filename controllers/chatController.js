@@ -18,6 +18,7 @@ console.log(userId)
 const getMessages = async (req, res) => {
   try {
     const messages = await Message.findAll({
+        limit: 50,
       order: [["createdAt", "ASC"]],
       include: { model: User, attributes: ["id", "name"] }
     });

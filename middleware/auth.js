@@ -1,40 +1,30 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/userModel');
-require('dotenv').config(); 
+const jwt = require("jsonwebtoken");
+const User = require("../models/userModel");
 
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
   try {
-const token = req.headers['authorization']?.split(" ")[1]; 
-    if (!token) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'No token provided' 
-      });
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return res.status(401).json({ message: "Token missing" });
     }
-    
-    const decoded = jwt.verify(token, process.env.JWT_SECRET );
-    console.log('Decoded token:', decoded);
-    
-    User.findByPk(decoded.userId).then(user => {
-      if (!user) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'User not found' 
-        });
-      }
-      req.user = user;
-      next();
-    }).catch(err => { 
-      throw new Error(err);
-    });
-    
-  } catch(err) {
-    console.log('Auth error:', err.message);
-    return res.status(401).json({ 
-      success: false, 
-      message: 'Invalid or expired token' 
-    });
+
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : authHeader;
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findByPk(decoded.userId);
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    req.user = user;
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid token" });
   }
-}
+};
 
 module.exports = { authenticate };
