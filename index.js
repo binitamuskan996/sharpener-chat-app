@@ -1,9 +1,9 @@
 require("dotenv").config();
 const express = require("express");
 const http = require("http");
-const WebSocket = require("ws");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+const { Server } = require("socket.io");
 
 const sequelize = require("./utils/db-connection");
 const User = require("./models/userModel");
@@ -27,48 +27,70 @@ Message.belongsTo(User);
 
 const server = http.createServer(app);
 
-const wss = new WebSocket.Server({ server });
-let sockets = [];
-
-wss.on("connection", async (ws, req) => {
-  const token = new URLSearchParams(req.url.split("?")[1]).get("token");
-
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  ws.userId = decoded.userId;
-
-  const user = await User.findByPk(ws.userId);
-
-  ws.on("message", async (data) => {
-    const text = data.toString();
-
-    const savedMsg = await Message.create({
-      UserId: ws.userId,
-      message: text
-    });
-
-    const payload = {
-      userId: ws.userId,
-      username: user.name,
-      message: text,        
-      createdAt: savedMsg.createdAt
-    };
-
-    wss.clients.forEach(client => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify(payload));
-      }
-    });
-  });
+const io = new Server(server, {
+  cors: {
+    origin: "*"
+  }
 });
 
+io.use(async (socket, next) => {
+  try {
+    const token = socket.handshake.auth?.token;
+
+    if (!token) {
+      return next(new Error("Authentication error"));
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.userId = decoded.userId;
+
+    socket.user = await User.findByPk(socket.userId);
+
+    if (!socket.user) {
+      return next(new Error("User not found"));
+    }
+
+    next();
+  } catch (err) {
+    next(new Error("Authentication failed"));
+  }
+});
+
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.user.name);
+
+  socket.on("chat-message", async (text) => {
+    try {
+      const savedMsg = await Message.create({
+        UserId: socket.userId,
+        message: text
+      });
+
+      const payload = {
+        userId: socket.userId,
+        username: socket.user.name,
+        message: text,
+        createdAt: savedMsg.createdAt
+      };
+
+      io.emit("chat-message", payload);
+    } catch (err) {
+      console.error("Message save error:", err);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.user.name);
+  });
+});
 
 sequelize
   .sync({ force: false })
   .then(() => {
     server.listen(PORT, () => {
-      console.log(`Server running on port ${PORT} (HTTP + WebSocket)`);
+      console.log(`Server running on http://localhost:${PORT} (Socket.IO)`);
     });
   })
   .catch((err) => {
-    console.error("Unable to connect to the database:", err);
+    console.error("DB connection error:", err);
   });

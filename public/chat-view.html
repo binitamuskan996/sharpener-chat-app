@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Chat Window UI</title>
@@ -28,7 +29,7 @@
       flex-direction: column;
       border-radius: 10px;
       overflow: hidden;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     }
 
     .chat-header {
@@ -101,7 +102,7 @@
 
 <body>
 
-   <div class="chat-container">
+  <div class="chat-container">
     <div class="chat-header">Sharpener Chat</div>
 
     <div class="chat-messages" id="chatMessages">
@@ -112,106 +113,92 @@
       <button onclick="sendMessage()">Send</button>
     </div>
   </div>
+  <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<script>
-const TOKEN = localStorage.getItem("token");
-const USER_ID = Number(localStorage.getItem("userId"));
+  <script>
+    const TOKEN = localStorage.getItem("token");
+    const USER_ID = Number(localStorage.getItem("userId"));
 
-if (!TOKEN || !USER_ID) {
-  alert("Please login again");
-  window.location.href = "login.html";
-}
-const chatBox = document.getElementById("chatMessages");
-const messageInput = document.getElementById("messageInput");
+    if (!TOKEN || !USER_ID) {
+      alert("Please login again");
+      window.location.href = "login.html";
+    }
 
-const socket = new WebSocket(`ws://localhost:3000?token=${TOKEN}`);
+    const chatBox = document.getElementById("chatMessages");
+    const messageInput = document.getElementById("messageInput");
 
-socket.onopen = () => {
-  console.log("WebSocket connected");
-};
+    const socket = io("http://localhost:3000", {
+      auth: {
+        token: TOKEN
+      }
+    });
 
-socket.onerror = (err) => {
-  console.error("WebSocket error", err);
-};
+    socket.on("connect", () => {
+      console.log("Socket.IO connected:", socket.id);
+    });
 
-socket.onmessage = (event) => {
-  console.log("RAW WS DATA:", event.data);
+    socket.on("connect_error", (err) => {
+      console.error("Socket connection error:", err.message);
+    });
 
-  let msg;
-  try {
-    msg = JSON.parse(event.data);
-  } catch (e) {
-    console.error("Invalid WS JSON", e);
-    return;
-  }
+    socket.on("chat-message", (msg) => {
+      addMessageToUI(msg);
+    });
 
-  console.log("MSG TYPE:", typeof msg.message); 
-  addMessageToUI(msg);
-};
+    function sendMessage() {
+      const text = messageInput.value.trim();
+      if (!text) return;
 
-function addMessageToUI(msg) {
-  if (typeof msg.message !== "string") {
-    msg.message = JSON.stringify(msg.message);
-  }
+      socket.emit("chat-message", text);
+      messageInput.value = "";
+    }
 
-  const div = document.createElement("div");
-  div.className =
-    msg.userId === USER_ID ? "message sent" : "message received";
+    messageInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
 
-  div.innerHTML = `
-    <p><strong>${msg.username || "User"}:</strong> ${msg.message}</p>
-    <span class="time">
-      ${new Date(msg.createdAt).toLocaleTimeString([], {
+    function addMessageToUI(msg) {
+      const div = document.createElement("div");
+      div.className =
+        msg.userId === USER_ID ? "message sent" : "message received";
+
+      div.innerHTML = `
+      <p><strong>${msg.username}:</strong> ${msg.message}</p>
+      <span class="time">
+        ${new Date(msg.createdAt).toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit"
       })}
-    </span>
-  `;
+      </span>
+    `;
 
-  chatBox.appendChild(div);
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
 
-function sendMessage() {
-  const text = messageInput.value.trim();
-  if (!text) return;
+    async function loadMessages() {
+      try {
+        const res = await axios.get("http://localhost:3000/chat/messages", {
+          headers: {
+            Authorization: `Bearer ${TOKEN}`
+          }
+        });
 
-  if (socket.readyState === WebSocket.OPEN) {
-    socket.send(text); // 
-    messageInput.value = "";
-  } else {
-    alert("WebSocket not connected yet");
-  }
-}
-
-messageInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") sendMessage();
-});
-
-async function loadMessages() {
-  try {
-    const res = await axios.get(
-      "http://localhost:3000/chat/messages",
-      {
-        headers: {
-          Authorization: TOKEN 
-        }
+        chatBox.innerHTML = "";
+        res.data.forEach(addMessageToUI);
+      } catch (err) {
+        console.error(
+          "Load messages error:",
+          err.response?.data || err.message
+        );
       }
-    );
+    }
 
-    chatBox.innerHTML = "";
-    res.data.forEach(addMessageToUI);
 
-  } catch (err) {
-    console.error(
-      "Load messages error:",
-      err.response?.data || err.message
-    );
-  }
-}
+    loadMessages();
+  </script>
 
-loadMessages();
-</script>
 </body>
+
 </html>
