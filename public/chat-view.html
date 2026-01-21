@@ -1,204 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <title>Chat Window UI</title>
+<meta charset="UTF-8" />
+<title>Chat Window</title>
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
-    }
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial;
+}
 
-    body {
-      background: #ece5dd;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+body {
+  background: #ece5dd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
 
-    .chat-container {
-      width: 360px;
-      height: 600px;
-      background: #fff;
-      display: flex;
-      flex-direction: column;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    }
+.chat-container {
+  width: 360px;
+  height: 600px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  overflow: hidden;
+}
 
-    .chat-header {
-      background: #075e54;
-      color: white;
-      padding: 15px;
-      text-align: center;
-      font-size: 18px;
-    }
+.chat-header {
+  background: #075e54;
+  color: white;
+  padding: 15px;
+  text-align: center;
+}
 
-    .chat-messages {
-      flex: 1;
-      padding: 12px;
-      overflow-y: auto;
-      background: #efeae2;
-    }
+.chat-messages {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  background: #efeae2;
+  display: flex;
+  flex-direction: column;
+}
 
-    .message {
-      max-width: 70%;
-      padding: 8px 10px;
-      margin-bottom: 10px;
-      border-radius: 8px;
-      position: relative;
-      word-wrap: break-word;
-    }
+.message {
+  max-width: 70%;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+}
 
-    .sent {
-      background: #dcf8c6;
-      margin-left: auto;
-    }
+.sent {
+  background: #dcf8c6;
+  margin-left: auto;
+}
 
-    .received {
-      background: #ffffff;
-      margin-right: auto;
-    }
+.received {
+  background: white;
+  margin-right: auto;
+}
 
-    .time {
-      font-size: 10px;
-      color: gray;
-      display: block;
-      text-align: right;
-      margin-top: 4px;
-    }
+.chat-input {
+  display: flex;
+  padding: 10px;
+  background: #f0f0f0;
+}
 
-    .chat-input {
-      display: flex;
-      padding: 10px;
-      background: #f0f0f0;
-    }
+.chat-input input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+}
 
-    .chat-input input {
-      flex: 1;
-      padding: 10px;
-      border-radius: 20px;
-      border: 1px solid #ccc;
-      outline: none;
-    }
-
-    .chat-input button {
-      margin-left: 8px;
-      padding: 10px 16px;
-      border: none;
-      border-radius: 20px;
-      background: #075e54;
-      color: white;
-      cursor: pointer;
-    }
-  </style>
+.chat-input button {
+  margin-left: 6px;
+  padding: 10px 16px;
+  background: #075e54;
+  color: white;
+  border-radius: 20px;
+  border: none;
+}
+</style>
 </head>
 
 <body>
+<div class="chat-container">
 
-  <div class="chat-container">
-    <div class="chat-header">Sharpener Chat</div>
+  <div class="chat-header">Sharpener Chat</div>
 
-    <div class="chat-messages" id="chatMessages">
-    </div>
-
-    <div class="chat-input">
-      <input type="text" id="messageInput" placeholder="Type a message..." />
-      <button onclick="sendMessage()">Send</button>
-    </div>
+  <div style="padding:8px;background:#ddd;">
+    <input id="emailInput" placeholder="Enter user email" style="width:75%" />
+    <button onclick="joinRoom()">Chat</button>
   </div>
-  <script src="http://localhost:3000/socket.io/socket.io.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-  <script>
-    const TOKEN = localStorage.getItem("token");
-    const USER_ID = Number(localStorage.getItem("userId"));
+  <div id="chatMessages" class="chat-messages"></div>
 
-    if (!TOKEN || !USER_ID) {
-      alert("Please login again");
-      window.location.href = "login.html";
-    }
+  <div class="chat-input">
+    <input id="messageInput" placeholder="Type message..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
 
-    const chatBox = document.getElementById("chatMessages");
-    const messageInput = document.getElementById("messageInput");
+</div>
 
-    const socket = io("http://localhost:3000", {
-      auth: {
-        token: TOKEN
-      }
-    });
+<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+<script>
+const token = localStorage.getItem("token");
+const myUserId = localStorage.getItem("userId");
+const myEmail = localStorage.getItem("email");
 
-    socket.on("connect", () => {
-      console.log("Socket.IO connected:", socket.id);
-    });
+if (!token) {
+  alert("Please login first");
+  window.location.href = "login.html";
+}
 
-    socket.on("connect_error", (err) => {
-      console.error("Socket connection error:", err.message);
-    });
+const socket = io("http://localhost:3000", {
+  auth: { token }
+});
 
-    socket.on("chat-message", (msg) => {
-      addMessageToUI(msg);
-    });
+const chatMessages = document.getElementById("chatMessages");
+const messageInput = document.getElementById("messageInput");
+const emailInput = document.getElementById("emailInput");
 
-    function sendMessage() {
-      const text = messageInput.value.trim();
-      if (!text) return;
+let currentRoom = null;
 
-      socket.emit("chat-message", text);
-      messageInput.value = "";
-    }
+function createRoom(a, b) {
+  return [a, b].sort().join("_");
+}
 
-    messageInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") sendMessage();
-    });
+function joinRoom() {
+  const otherEmail = emailInput.value.trim();
+  if (!otherEmail) return alert("Enter email");
 
-    function addMessageToUI(msg) {
-      const div = document.createElement("div");
-      div.className =
-        msg.userId === USER_ID ? "message sent" : "message received";
+  currentRoom = createRoom(myEmail, otherEmail);
+  socket.emit("join-room", currentRoom);
+  chatMessages.innerHTML = "";
+  alert("Chat started");
+}
 
-      div.innerHTML = `
-      <p><strong>${msg.username}:</strong> ${msg.message}</p>
-      <span class="time">
-        ${new Date(msg.createdAt).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit"
-      })}
-      </span>
-    `;
+function sendMessage() {
+  if (!currentRoom) return alert("Join chat first");
+  const msg = messageInput.value.trim();
+  if (!msg) return;
 
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
+  socket.emit("new-message", {
+    message: msg,
+    roomName: currentRoom
+  });
 
-    async function loadMessages() {
-      try {
-        const res = await axios.get("http://localhost:3000/chat/messages", {
-          headers: {
-            Authorization: `Bearer ${TOKEN}`
-          }
-        });
+  messageInput.value = "";
+}
 
-        chatBox.innerHTML = "";
-        res.data.forEach(addMessageToUI);
-      } catch (err) {
-        console.error(
-          "Load messages error:",
-          err.response?.data || err.message
-        );
-      }
-    }
+socket.on("new-message", (data) => {
+  const div = document.createElement("div");
+  div.classList.add("message");
 
+  if (String(data.senderId) === String(myUserId)) {
+    div.classList.add("sent");
+    div.textContent = data.message;
+  } else {
+    div.classList.add("received");
+    div.innerHTML = `<strong>${data.senderName}</strong><br>${data.message}`;
+  }
 
-    loadMessages();
-  </script>
+  chatMessages.appendChild(div);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+});
+</script>
 
 </body>
-
 </html>
