@@ -38,21 +38,23 @@ io.use(async (socket, next) => {
     const token = socket.handshake.auth?.token;
 
     if (!token) {
-      return next(new Error("Authentication error"));
+      return next(new Error("Authorization token missing"));
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    socket.userId = decoded.userId;
 
-    socket.user = await User.findByPk(socket.userId);
+    const user = await User.findByPk(decoded.userId);
 
-    if (!socket.user) {
+    if (!user) {
       return next(new Error("User not found"));
     }
 
+    socket.user = user;
+    socket.userId = user.id;
+
     next();
   } catch (err) {
-    next(new Error("Authentication failed"));
+    return next(new Error("Authentication failed"));
   }
 });
 
@@ -66,16 +68,15 @@ io.on("connection", (socket) => {
         message: text
       });
 
-      const payload = {
+      io.emit("chat-message", {
         userId: socket.userId,
         username: socket.user.name,
         message: text,
         createdAt: savedMsg.createdAt
-      };
+      });
 
-      io.emit("chat-message", payload);
     } catch (err) {
-      console.error("Message save error:", err);
+      console.error("Message error:", err);
     }
   });
 
@@ -88,7 +89,7 @@ sequelize
   .sync({ force: false })
   .then(() => {
     server.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT} (Socket.IO)`);
+      console.log(`Server running on http://localhost:${PORT}`);
     });
   })
   .catch((err) => {
