@@ -69,9 +69,10 @@ document.getElementById("loginForm").addEventListener("submit", async function (
       loginId,
       password
     });
-
     localStorage.setItem("token", res.data.token);
     localStorage.setItem("userId", res.data.userId);
+    localStorage.setItem("email", res.data.email);
+    localStorage.setItem("name", res.data.name);
 
     alert("Login successful");
     window.location.href = "chat-view.html";

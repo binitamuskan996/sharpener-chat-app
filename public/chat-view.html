@@ -45,7 +45,20 @@ body {
   display: flex;
   flex-direction: column;
 }
+.message strong {
+  font-size: 13px;
+  color: #075e54;
+  display: block;
+  margin-bottom: 3px;
+}
 
+.message-time {
+  font-size: 10px;
+  color: #667781;
+  text-align: right;
+  margin-top: 3px;
+  display: block;
+}
 .message {
   max-width: 70%;
   padding: 8px 10px;
@@ -124,6 +137,7 @@ const socket = io("http://localhost:3000", {
 const chatMessages = document.getElementById("chatMessages");
 const messageInput = document.getElementById("messageInput");
 const emailInput = document.getElementById("emailInput");
+const myName = localStorage.getItem("name");
 
 let currentRoom = null;
 
@@ -157,13 +171,23 @@ function sendMessage() {
 socket.on("new-message", (data) => {
   const div = document.createElement("div");
   div.classList.add("message");
+  const now = new Date();
+  const time = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 
   if (String(data.senderId) === String(myUserId)) {
     div.classList.add("sent");
-    div.textContent = data.message;
+    div.innerHTML = `
+      <strong>${myName || "You"}</strong>
+      ${data.message}
+      <span class="message-time">${time}</span>
+    `;
   } else {
     div.classList.add("received");
-    div.innerHTML = `<strong>${data.senderName}</strong><br>${data.message}`;
+    div.innerHTML = `
+      <strong>${data.senderName}</strong>
+      ${data.message}
+      <span class="message-time">${time}</span>
+    `;
   }
 
   chatMessages.appendChild(div);
