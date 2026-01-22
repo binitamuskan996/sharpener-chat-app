@@ -9,6 +9,7 @@ const Message = require("./models/message");
 
 const authRoutes = require("./routes/authRoutes");
 const chatRoutes = require("./routes/chatRoutes");
+const mediaRoutes = require("./routes/mediaRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,6 +20,7 @@ app.use(express.static("public"));
 
 app.use("/auth", authRoutes);
 app.use("/chat", chatRoutes);
+app.use("/media", mediaRoutes);
 
 User.hasMany(Message);
 Message.belongsTo(User);
