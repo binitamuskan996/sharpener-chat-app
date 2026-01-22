@@ -124,9 +124,11 @@ body {
 const token = localStorage.getItem("token");
 const myUserId = localStorage.getItem("userId");
 const myEmail = localStorage.getItem("email");
+const myName = localStorage.getItem("name");
 
-if (!token) {
-  alert("Please login first");
+if (!token || !myUserId || !myEmail) {
+  alert("Please login again");
+  localStorage.clear();
   window.location.href = "login.html";
 }
 
@@ -137,47 +139,81 @@ const socket = io("http://localhost:3000", {
 const chatMessages = document.getElementById("chatMessages");
 const messageInput = document.getElementById("messageInput");
 const emailInput = document.getElementById("emailInput");
-const myName = localStorage.getItem("name");
 
 let currentRoom = null;
+let chatType = null;
 
-function createRoom(a, b) {
+function createPrivateRoom(a, b) {
   return [a, b].sort().join("_");
 }
 
 function joinRoom() {
-  const otherEmail = emailInput.value.trim();
-  if (!otherEmail) return alert("Enter email");
+  const value = emailInput.value.trim();
+  if (!value) return alert("Enter email or group name");
 
-  currentRoom = createRoom(myEmail, otherEmail);
-  socket.emit("join-room", currentRoom);
   chatMessages.innerHTML = "";
-  alert("Chat started");
+
+  // GROUP CHAT
+  if (value.startsWith("group:")) {
+    const groupName = value.split("group:")[1];
+    if (!groupName) return alert("Invalid group name");
+
+    currentRoom = `group_${groupName}`;
+    chatType = "group";
+
+    socket.emit("join-group", { groupId: currentRoom });
+    alert(`Joined group: ${groupName}`);
+    return;
+  }
+
+  // PRIVATE CHAT
+  currentRoom = createPrivateRoom(myEmail, value);
+  chatType = "private";
+
+  socket.emit("join-room", currentRoom);
+  alert("Private chat started");
 }
 
 function sendMessage() {
   if (!currentRoom) return alert("Join chat first");
+
   const msg = messageInput.value.trim();
   if (!msg) return;
 
-  socket.emit("new-message", {
-    message: msg,
-    roomName: currentRoom
-  });
+  if (chatType === "group") {
+    socket.emit("group-message", {
+      groupId: currentRoom,
+      message: msg
+    });
+  } else {
+    socket.emit("new-message", {
+      message: msg,
+      roomName: currentRoom
+    });
+  }
 
   messageInput.value = "";
 }
 
-socket.on("new-message", (data) => {
+// PRIVATE MESSAGE
+socket.on("new-message", renderMessage);
+
+// GROUP MESSAGE
+socket.on("group-message", renderMessage);
+
+function renderMessage(data) {
   const div = document.createElement("div");
   div.classList.add("message");
-  const now = new Date();
-  const time = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+
+  const time = new Date().toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 
   if (String(data.senderId) === String(myUserId)) {
     div.classList.add("sent");
     div.innerHTML = `
-      <strong>${myName || "You"}</strong>
+    <strong>${myName || "You"}</strong>
       ${data.message}
       <span class="message-time">${time}</span>
     `;
@@ -192,7 +228,7 @@ socket.on("new-message", (data) => {
 
   chatMessages.appendChild(div);
   chatMessages.scrollTop = chatMessages.scrollHeight;
-});
+}
 </script>
 
 </body>
