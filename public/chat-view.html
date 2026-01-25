@@ -1,325 +1,365 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<title>Chat Window</title>
+  <meta charset="UTF-8" />
+  <title>Chat Window</title>
 
-<style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Arial;
-}
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial;
+    }
 
-body {
-  background: #ece5dd;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
+    body {
+      background: #ece5dd;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
 
-.chat-container {
-  width: 360px;
-  height: 600px;
-  background: white;
-  display: flex;
-  flex-direction: column;
-  border-radius: 10px;
-  overflow: hidden;
-}
+    .chat-container {
+      width: 360px;
+      height: 600px;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      border-radius: 10px;
+      overflow: hidden;
+    }
 
-.chat-header {
-  background: #075e54;
-  color: white;
-  padding: 15px;
-  text-align: center;
-}
+    .chat-header {
+      background: #075e54;
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
 
-.chat-messages {
-  flex: 1;
-  padding: 10px;
-  overflow-y: auto;
-  background: #efeae2;
-  display: flex;
-  flex-direction: column;
-}
-.message strong {
-  font-size: 13px;
-  color: #075e54;
-  display: block;
-  margin-bottom: 3px;
-}
+    .chat-messages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      background: #efeae2;
+      display: flex;
+      flex-direction: column;
+    }
 
-.message-time {
-  font-size: 10px;
-  color: #667781;
-  text-align: right;
-  margin-top: 3px;
-  display: block;
-}
-.message {
-  max-width: 70%;
-  padding: 8px 10px;
-  margin-bottom: 8px;
-  border-radius: 8px;
-  word-wrap: break-word;
-}
+    .message strong {
+      font-size: 13px;
+      color: #075e54;
+      display: block;
+      margin-bottom: 3px;
+    }
 
-.sent {
-  background: #dcf8c6;
-  margin-left: auto;
-}
+    .message-time {
+      font-size: 10px;
+      color: #667781;
+      text-align: right;
+      margin-top: 3px;
+      display: block;
+    }
 
-.received {
-  background: white;
-  margin-right: auto;
-}
+    .message {
+      max-width: 70%;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      word-wrap: break-word;
+    }
 
-.chat-input {
-  display: flex;
-  padding: 10px;
-  background: #f0f0f0;
-  gap: 5px; 
-  align-items: center;
-  flex-wrap: wrap; 
-}
+    .sent {
+      background: #dcf8c6;
+      margin-left: auto;
+    }
 
-#fileName {
-  flex: 1 1 auto; 
-  white-space: nowrap; 
-  overflow: hidden; 
-  text-overflow: ellipsis; 
-  font-size: 13px;
-  color: #333;
-  margin-left: 10px;
-}
+    .received {
+      background: white;
+      margin-right: auto;
+    }
+
+    .chat-input {
+      display: flex;
+      padding: 10px;
+      background: #f0f0f0;
+      gap: 5px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    #fileName {
+      flex: 1 1 auto;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 13px;
+      color: #333;
+      margin-left: 10px;
+    }
 
 
-.chat-input input[type="text"] {
-  flex: 1;
-  padding: 10px;
-  border-radius: 20px;
-  border: 1px solid #ccc;
-}
+    .chat-input input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+    }
 
-.chat-input input[type="file"] {
-  flex: 0 0 auto; 
-}
+    .chat-input input[type="file"] {
+      flex: 0 0 auto;
+    }
 
-.chat-input button {
-  flex: 0 0 auto; 
-  margin-left: 5px;
-  padding: 10px 16px;
-  background: #075e54;
-  color: white;
-  border-radius: 20px;
-  border: none;
-}
-.file-label {
-  padding: 10px;
-  background: #075e54;
-  color: white;
-  border-radius: 20px;
-  cursor: pointer;
-}
-.media-link {
-  color: blue;
-  text-decoration: underline;
-  cursor: pointer;
-}
+    .chat-input button {
+      flex: 0 0 auto;
+      margin-left: 5px;
+      padding: 10px 16px;
+      background: #075e54;
+      color: white;
+      border-radius: 20px;
+      border: none;
+    }
 
-</style>
+    .file-label {
+      padding: 10px;
+      background: #075e54;
+      color: white;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+
+    .media-link {
+      color: blue;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  </style>
 </head>
 
 <body>
-<div class="chat-container">
+  <div class="chat-container">
 
-  <div class="chat-header">Sharpener Chat</div>
+    <div class="chat-header">Sharpener Chat</div>
 
-  <div style="padding:8px;background:#ddd;">
-    <input id="emailInput" placeholder="Enter user email" style="width:75%" />
-    <button onclick="joinRoom()">Chat</button>
+    <div style="padding:8px;background:#ddd;">
+      <input id="emailInput" placeholder="Enter user email" style="width:75%" />
+      <button onclick="joinRoom()">Chat</button>
+    </div>
+
+    <div id="chatMessages" class="chat-messages"></div>
+
+    <div class="chat-input">
+      <input id="messageInput" type="text" placeholder="Type message..." />
+
+      <label for="mediaInput" class="file-label">Choose file</label>
+      <input id="mediaInput" type="file" style="display:none;" />
+
+      <span id="filePreview"
+        style="max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px;"></span>
+
+      <button onclick="sendMessage()">Send</button>
+    </div>
+
   </div>
 
-  <div id="chatMessages" class="chat-messages"></div>
+  <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+  <script>
+    const token = localStorage.getItem("token");
+    const myUserId = localStorage.getItem("userId");
+    const myEmail = localStorage.getItem("email");
+    const myName = localStorage.getItem("name");
 
-  <div class="chat-input">
-    <input id="messageInput" type="text" placeholder="Type message..." />
-    
-    <label for="mediaInput" class="file-label">Choose file</label>
-    <input id="mediaInput" type="file" style="display:none;" />
-    <span id="fileName"></span>
-    
-    <button onclick="sendMessage()">Send</button>
-  </div>
+    if (!token || !myUserId || !myEmail) {
+      alert("Please login again");
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
 
-</div>
+    const socket = io("http://localhost:3000", {
+      auth: { token }
+    });
 
-<script src="http://localhost:3000/socket.io/socket.io.js"></script>
-<script>
-const token = localStorage.getItem("token");
-const myUserId = localStorage.getItem("userId");
-const myEmail = localStorage.getItem("email");
-const myName = localStorage.getItem("name");
+    const chatMessages = document.getElementById("chatMessages");
+    const messageInput = document.getElementById("messageInput");
+    const emailInput = document.getElementById("emailInput");
+    const mediaInput = document.getElementById("mediaInput");
+    const fileNameSpan = document.getElementById("fileName");
 
-if (!token || !myUserId || !myEmail) {
-  alert("Please login again");
-  localStorage.clear();
-  window.location.href = "login.html";
-}
+    let currentRoom = null;
+    let chatType = null;
 
-const socket = io("http://localhost:3000", {
-  auth: { token }
-});
+    function createPrivateRoom(a, b) {
+      return [a, b].sort().join("_");
+    }
 
-const chatMessages = document.getElementById("chatMessages");
-const messageInput = document.getElementById("messageInput");
-const emailInput = document.getElementById("emailInput");
-const mediaInput = document.getElementById("mediaInput");
-const fileNameSpan = document.getElementById("fileName");
+    function joinRoom() {
+      const value = emailInput.value.trim();
+      if (!value) return alert("Enter email or group name");
 
-let currentRoom = null;
-let chatType = null;
+      chatMessages.innerHTML = "";
 
-function createPrivateRoom(a, b) {
-  return [a, b].sort().join("_");
-}
+      // GROUP CHAT
+      if (value.startsWith("group:")) {
+        const groupName = value.split("group:")[1];
+        if (!groupName) return alert("Invalid group name");
 
-function joinRoom() {
-  const value = emailInput.value.trim();
-  if (!value) return alert("Enter email or group name");
+        currentRoom = `group_${groupName}`;
+        chatType = "group";
 
-  chatMessages.innerHTML = "";
+        socket.emit("join-group", { groupId: currentRoom });
+        alert(`Joined group: ${groupName}`);
+        return;
+      }
 
-  // GROUP CHAT
-  if (value.startsWith("group:")) {
-    const groupName = value.split("group:")[1];
-    if (!groupName) return alert("Invalid group name");
+      // PRIVATE CHAT
+      currentRoom = createPrivateRoom(myEmail, value);
+      chatType = "private";
 
-    currentRoom = `group_${groupName}`;
-    chatType = "group";
+      socket.emit("join-room", currentRoom);
+      alert("Private chat started");
+    }
 
-    socket.emit("join-group", { groupId: currentRoom });
-    alert(`Joined group: ${groupName}`);
-    return;
-  }
+    mediaInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      const preview = document.getElementById("filePreview");
 
-  // PRIVATE CHAT
-  currentRoom = createPrivateRoom(myEmail, value);
-  chatType = "private";
-
-  socket.emit("join-room", currentRoom);
-  alert("Private chat started");
-}
-
-mediaInput.addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    fileNameSpan.textContent = file.name; 
-  } else {
-    fileNameSpan.textContent = "";
-  }
-});
-
-async function sendMedia(file) {
-  if (!file) return;
-
-  const formData = new FormData();
-  formData.append("file", file);
-
-  try {
-    const res = await fetch("http://localhost:3000/media/upload", {
-      method: "POST",
-      body: formData,
-      headers: {
-        Authorization: `Bearer ${token}`
+      if (!file) {
+        preview.innerHTML = "";
+        return;
+      }
+      if (file.type.startsWith("image")) {
+        preview.innerHTML = `<img src="${URL.createObjectURL(file)}" style="max-width:50px; max-height:50px; border-radius:5px;"> ${file.name}`;
+      } else if (file.type.startsWith("video")) {
+        preview.innerHTML = `<video src="${URL.createObjectURL(file)}" style="max-width:50px; max-height:50px;" muted></video> ${file.name}`;
+      } else {
+        preview.textContent = file.name;
       }
     });
-    const data = await res.json();
-    if (data.url) {
-      if (chatType === "group") {
-        socket.emit("group-message", {
-          groupId: currentRoom,
-          message: data.url,
-          media: true
+
+
+    async function sendMedia(file) {
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const res = await fetch("http://localhost:3000/media/upload", {
+          method: "POST",
+          body: formData,
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
         });
-      } else {
-        socket.emit("new-message", {
-          message: data.url,
-          roomName: currentRoom,
-          media: true
-        });
+
+        const data = await res.json();
+
+        if (data.url) {
+          const payload = {
+            message: data.url,
+            media: true,
+            fileType: file.type,
+            fileName: file.name,
+            senderId: myUserId,
+            senderName: myName
+          };
+
+          if (chatType === "group") {
+            socket.emit("group-message", {
+              groupId: currentRoom,
+              ...payload
+            });
+          } else {
+            socket.emit("new-message", {
+              roomName: currentRoom,
+              ...payload
+            });
+          }
+
+          mediaInput.value = "";
+          document.getElementById("filePreview").innerHTML = "";
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Media upload failed");
       }
-      mediaInput.value = "";
-      fileNameSpan.textContent = "";
     }
-  } catch (err) {
-    console.error(err);
-    alert("Media upload failed");
-  }
-}
 
-function sendMessage() {
-  if (!currentRoom) return alert("Join chat first");
 
-  const msg = messageInput.value.trim();
-  const file = mediaInput.files[0];
+    function sendMessage() {
+      if (!currentRoom) return alert("Join chat first");
 
-  if (!msg && !file) return;
+      const msg = messageInput.value.trim();
+      const file = mediaInput.files[0];
 
-  if (msg) {
-    if (chatType === "group") {
-      socket.emit("group-message", {
-        groupId: currentRoom,
-        message: msg
-      });
-    } else {
-      socket.emit("new-message", {
-        message: msg,
-        roomName: currentRoom
-      });
+      if (!msg && !file) return;
+
+      if (msg) {
+        if (chatType === "group") {
+          socket.emit("group-message", {
+            groupId: currentRoom,
+            message: msg
+          });
+        } else {
+          socket.emit("new-message", {
+            message: msg,
+            roomName: currentRoom
+          });
+        }
+        messageInput.value = "";
+      }
+
+      if (file) {
+        sendMedia(file);
+      }
     }
-    messageInput.value = "";
-  }
 
-  if (file) {
-    sendMedia(file);
-  }
-}
+    socket.on("new-message", renderMessage);
+    socket.on("group-message", renderMessage);
 
-socket.on("new-message", renderMessage);
-socket.on("group-message", renderMessage);
+    function renderMessage(data) {
+      const div = document.createElement("div");
+      div.classList.add("message");
 
-function renderMessage(data) {
-  const div = document.createElement("div");
-  div.classList.add("message");
+      const time = new Date().toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
 
-  const time = new Date().toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+      let content = data.message;
+      if (data.media) {
+        if (data.fileType?.startsWith("image")) {
+          content = `<img src="${data.message}" style="max-width:200px;border-radius:8px" />`;
+        }
+        else if (data.fileType?.startsWith("video")) {
+          content = `
+      <video controls style="max-width:220px">
+        <source src="${data.message}" type="${data.fileType}">
+      </video>`;
+        }
+        else {
+          content = `
+      <a href="${data.message}" target="_blank" class="media-link">
+        📎 ${data.fileName || "Download file"}
+      </a>`;
+        }
+      }
 
-  let content = data.message;
-  if (data.media) {
-  const fileName = data.message.split('/').pop();
-content = `<a href="${data.message}" target="_blank" class="media-link">${fileName}</a>`;
 
-  }
+      if (String(data.senderId) === String(myUserId)) {
+        div.classList.add("sent");
+        div.innerHTML = `<strong>${myName || "You"}</strong>${content}<span class="message-time">${time}</span>`;
+      } else {
+        div.classList.add("received");
+        div.innerHTML = `<strong>${data.senderName}</strong>${content}<span class="message-time">${time}</span>`;
+      }
 
-  if (String(data.senderId) === String(myUserId)) {
-    div.classList.add("sent");
-    div.innerHTML = `<strong>${myName || "You"}</strong>${content}<span class="message-time">${time}</span>`;
-  } else {
-    div.classList.add("received");
-    div.innerHTML = `<strong>${data.senderName}</strong>${content}<span class="message-time">${time}</span>`;
-  }
-
-  chatMessages.appendChild(div);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-</script>
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+  </script>
 
 </body>
+
 </html>

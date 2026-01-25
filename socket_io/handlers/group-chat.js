@@ -10,12 +10,16 @@ module.exports = (io, socket) => {
     console.log(`${socket.user.email} joined group ${groupId}`);
   });
 
-  socket.on("group-message", ({ groupId, message }) => {
-    io.to(groupId).emit("group-message", {
-      senderId: socket.user.id,
-      senderName: socket.user.name,
-      message
-    });
+  socket.on("group-message", (data) => {
+  io.to(data.groupId).emit("group-message", {
+    senderId: socket.user.id,
+    senderName: socket.user.name,
+    message: data.message,
+    media: data.media || false,
+    fileType: data.fileType || null,
+    fileName: data.fileName || null
   });
+});
+
 
 };

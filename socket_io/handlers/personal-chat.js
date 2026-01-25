@@ -5,12 +5,14 @@ module.exports = (socket, io) => {
     console.log(`${socket.user.name} joined room ${roomName}`);
   });
 
-  socket.on("new-message", ({ message, roomName }) => {
-    io.to(roomName).emit("new-message", {
-      senderId: socket.user.id,
-      senderName: socket.user.name,
-      senderEmail: socket.user.email,
-      message
-    });
+  socket.on("new-message", (data) => {
+  io.to(data.roomName).emit("new-message", {
+    senderId: socket.user.id,
+    senderName: socket.user.name,
+    message: data.message,
+    media: data.media || false,
+    fileType: data.fileType || null,
+    fileName: data.fileName || null
   });
+});
 };
