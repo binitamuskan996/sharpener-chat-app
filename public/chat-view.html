@@ -149,6 +149,9 @@
 
     <div id="chatMessages" class="chat-messages"></div>
 
+    <div id="suggestions" style="display:flex; gap:6px; padding:6px;"></div>
+    <div id="smartReplies" style="display:flex; gap:6px; padding:6px;"></div>
+
     <div class="chat-input">
       <input id="messageInput" type="text" placeholder="Type message..." />
 
@@ -330,6 +333,11 @@
       });
 
       let content = data.message;
+      if (!data.media && data.message?.length > 2) {
+        fetchSmartReplies(data.message);
+      }
+
+
       if (data.media) {
         if (data.fileType?.startsWith("image")) {
           content = `<img src="${data.message}" style="max-width:200px;border-radius:8px" />`;
@@ -360,7 +368,66 @@
       chatMessages.appendChild(div);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
-   
+    const suggestionsDiv = document.getElementById("suggestions");
+
+    let typingTimer;
+    messageInput.addEventListener("input", () => {
+      clearTimeout(typingTimer);
+
+      const text = messageInput.value;
+      if (text.length < 4) {
+        suggestionsDiv.innerHTML = "";
+        return;
+      }
+
+      typingTimer = setTimeout(async () => {
+        const res = await axios.post(
+          "http://localhost:3000/chat/suggest",
+          { text },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        suggestionsDiv.innerHTML = "";
+        res.data.suggestions.forEach(s => {
+          const btn = document.createElement("button");
+          btn.innerText = s;
+          btn.onclick = () => {
+            messageInput.value += " " + s;
+            suggestionsDiv.innerHTML = "";
+          };
+          suggestionsDiv.appendChild(btn);
+        });
+      }, 400);
+    });
+    async function fetchSmartReplies(message) {
+      const res = await axios.post(
+        "http://localhost:3000/chat/smart-replies",
+        { message },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const smartRepliesDiv = document.getElementById("smartReplies");
+      smartRepliesDiv.innerHTML = "";
+
+      res.data.replies.forEach(reply => {
+        const btn = document.createElement("button");
+        btn.innerText = reply;
+        btn.onclick = () => {
+          messageInput.value = reply;
+          smartRepliesDiv.innerHTML = "";
+        };
+        smartRepliesDiv.appendChild(btn);
+      });
+    }
+
   </script>
 
 </body>
